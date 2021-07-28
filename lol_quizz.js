@@ -181,7 +181,6 @@ class LolQuizz {
     playCurrent() {
         if (this.State == "IN_GAME" && this.Connection != null) {
             this.Connection.play(`https://cdn.communitydragon.org/11.15.1/champion/${this.CurrentChampion.id}/champ-select/sounds/choose`);
-            console.log(this.CurrentChampion.id);
             return true;
         } else {
             return false;
@@ -190,7 +189,6 @@ class LolQuizz {
 
     pickChampion() {
         let champions = Object.keys(this.Champions);
-        console.log(champions.length);
         let championName = champions[Math.floor(Math.random() * champions.length)];
         let champion = this.Champions[championName];
         delete this.Champions[championName];

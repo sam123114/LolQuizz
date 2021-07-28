@@ -38,7 +38,7 @@ client.on('message', msg => {
         const embed = new Discord.MessageEmbed()
         .setTitle('LolQuizz')
         .setColor(0xFF0000)
-        .setDescription('LolQuizz is a game in which you will hear the quote of a random champion and the faster you guess, the more points you get');
+        .setDescription('LolQuizz is a game in which you will hear the quote of a random champion and first person to guess the champion wins.');
         msg.channel.send(embed);
     } else if (cmd === prefix + 'start') {
         let quizz = new LolQuizz.LolQuizz(msg.channel.id, client);
@@ -104,7 +104,7 @@ client.on('messageReactionAdd', (reaction, user) => {
         if (typeof games[guild.id] !== 'undefined') {
             let guildMember = guild.members.cache.get(user.id);
             if (guildMember.voice.channel == null) {
-                message.channel.send(`<@${user.id}>, You must be in a voice channe in order to start the game`);
+                message.channel.send(`<@${user.id}>, You must be in a voice channel in order to start the game`);
                 return;
             }
             if (Object.keys(game.Players).length < 1) {
