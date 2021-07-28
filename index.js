@@ -40,8 +40,7 @@ client.on('message', msg => {
         .setColor(0xFF0000)
         .setDescription('LolQuizz is a game in which you will hear the quote of a random champion and the faster you guess, the more points you get');
         msg.channel.send(embed);
-    }
-    if (cmd === prefix + 'start') {
+    } else if (cmd === prefix + 'start') {
         let quizz = new LolQuizz.LolQuizz(msg.channel.id, client);
         //we want to add the game to the games array
         let guildId = msg.guild.id;
@@ -61,31 +60,15 @@ client.on('message', msg => {
         } else {
             msg.reply('A game is already in progress for this server');
         }
-    }
-    if (cmd === prefix + 'answer') {
-        if (args.length < 1) {
-            msg.reply('You have to send the champion name');
-            return;
-        }
-
+    } else if ((typeof games[msg.guild.id] !== 'undefined') && games[msg.guild.id].State == "IN_GAME") {
         let guildId = msg.guild.id;
-        if (typeof games[guildId] === 'undefined') {
-            msg.reply('No game is in progress for this server');
-            return;
-        }
-        if (games[guildId].State != "IN_GAME") {
-            msg.reply('There game has not started yet');
-            return;
-        }
-
         msg.delete();
-
         if (games[guildId].isPlayer(msg.author.id)) {
-            let res = games[guildId].validateResponse(msg.author.id, args[0]);
+            let res = games[guildId].validateResponse(msg.author.id, cmd);
             if (res) {
                 msg.reply('Guessed the answer rights and earned a point', {});
-                games[guildId].updateScoreBoard(msg.channel);
                 games[guildId].nextRound();
+                games[guildId].updateScoreBoard(msg.channel);
             }
         }
     }
@@ -137,7 +120,7 @@ client.on('messageReactionAdd', (reaction, user) => {
     } else if (reaction.emoji.name == "🔄") {
         // we want to repeat the current voice line
         game.playCurrent();
-        game.updateScoreBoard(message.channel);
+        game.updateScoreBoard(message.channel, false, false);
     } else if (reaction.emoji.name == "⏭") {
         // we want to skip the current voice line
         game.nextRound();
@@ -147,6 +130,7 @@ client.on('messageReactionAdd', (reaction, user) => {
         // we want to stop the game
         game.stopGame();
         game.updateScoreBoard(message.channel);
+        games[guild.id] = undefined;
         game_over = true;
         update_game = true;
         delete_reactions = true;

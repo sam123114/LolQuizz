@@ -20,6 +20,11 @@ exports.updateChampionData = function(lastestVersion) {
     }
 }
 
+exports.getChampions = function () {
+    const champion_data = ReadFileSync(dataFilePath);
+    return champion_data.data;
+}
+
 exports.selectChampionRandomly = function () {
     const champion_data = ReadFileSync(dataFilePath);
     let champions = Object.keys(champion_data.data);
