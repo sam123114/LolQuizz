@@ -78,6 +78,17 @@ client.on('messageReactionAdd', (reaction, user) => {
     // ignore reactions from bots
     if (user.bot) return;
 
+    handleButtons(reaction, user);
+});
+
+client.on('messageReactionRemove', (reaction, user) => {
+    // ignore reactions from bots
+    if (user.bot) return;
+
+    handleButtons(reaction, user);
+});
+
+function handleButtons(reaction, user) {
     let update_setup = false;
     let update_game = false;
     let delete_reactions = false;
@@ -155,6 +166,6 @@ client.on('messageReactionAdd', (reaction, user) => {
     if (game_over) {
         games[guild.id] !== undefined;
     }
-});
+}
   
 client.login(process.env.DISCORD_TOKEN);
