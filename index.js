@@ -2,8 +2,6 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const fetch = require("node-fetch");
-const fs = require('fs');
-const path = require('path');
 const LolQuizz = require('./lol_quizz.js');
 
 //Loading env
@@ -12,7 +10,7 @@ require('dotenv').config()
 //Loading helpers
 const champion_data_helper = require('./helpers/champion_data_helper.js');
 
-//Array in which we keep the current game for a given channel
+//Array in which we keep the current game for a given guild
 let games = [];
 
 client.on('ready', () => {
@@ -23,6 +21,8 @@ client.on('ready', () => {
         console.log("Checking for update");
         champion_data_helper.updateChampionData(json[0]);
     }).catch(console.error);
+
+    client.user.setActivity('.info', {type: 'LISTENING'});
 });
 
 client.on('message', msg => {
@@ -35,13 +35,16 @@ client.on('message', msg => {
     let args = messageArray.slice(1);
 
     if (cmd === prefix + 'info') {
+        const attachment = new Discord.MessageAttachment('./images/author_logo.jpg', 'author_logo.jpg');
         const embed = new Discord.MessageEmbed()
+        .attachFiles(attachment)
         .setTitle('LolQuizz')
         .setColor(0xFF0000)
-        .setDescription('LolQuizz is a game in which you will hear the quote of a random champion and first person to guess the champion wins.');
+        .setDescription('**Rules:**\nLolQuizz is a game in which you will hear the quote of a random champion and first person to guess the champion wins.\n**Commands:**\n🔸 **' + prefix + 'info** Rules and list of command\n🔸 **' + prefix + 'start** Start a new game\n🔸 **' + prefix + 'stop** End the game')
+        .setFooter('By Sam | イボイノシシ#0878', 'attachment://author_logo.jpg');
         msg.channel.send(embed);
     } else if (cmd === prefix + 'start') {
-        let quizz = new LolQuizz.LolQuizz(msg.channel.id, client);
+        let quizz = new LolQuizz.LolQuizz(msg.channel, client);
         //we want to add the game to the games array
         let guildId = msg.guild.id;
         if (typeof games[guildId] === 'undefined') {
@@ -51,17 +54,29 @@ client.on('message', msg => {
             const embed = new Discord.MessageEmbed()
             .setTitle('LolQuizz')
             .setColor(0xFF0000)
-            .setDescription("**Use reactions to execute an action**\n📥 To join the game\n📤 To leave the game\n🤬 To start the game with the current participants\n**Participants:**\n");
+            .setDescription("**Use reactions to execute an action**\n📥 To join the game\n📤 To leave the game\n▶️ To start the game with the current participants\n**Participants:**\n");
             msg.channel.send(embed).then(message => {
                 message.react("📥");
                 message.react("📤");
-                message.react("🤬");
+                message.react("▶️");
             });
         } else {
             msg.reply('A game is already in progress for this server');
         }
+    } else if (cmd === prefix + 'stop') {
+        let guildId = msg.guild.id;
+        if (typeof games[guildId] !== 'undefined') {
+            games[guildId].stopGame();
+            games[guildId].updateScoreBoard(msg.channel);
+            games[guildId] = undefined;
+        } else {
+            msg.reply('There is no game to stop for this server');
+        }
     } else if ((typeof games[msg.guild.id] !== 'undefined') && games[msg.guild.id].State == "IN_GAME") {
         let guildId = msg.guild.id;
+        if (msg.channel.id != games[guildId].ChannelId) {
+            return;
+        }
         msg.delete();
         if (games[guildId].isPlayer(msg.author.id)) {
             let res = games[guildId].validateResponse(msg.author.id, cmd);
@@ -110,7 +125,7 @@ function handleButtons(reaction, user) {
             games[guild.id].removePlayer(user.id);
             update_setup = true;
         }
-    } else if (reaction.emoji.name == "🤬") {
+    } else if (reaction.emoji.name == "▶️") {
         // we want to start the game
         if (typeof games[guild.id] !== 'undefined') {
             let guildMember = guild.members.cache.get(user.id);
@@ -152,7 +167,7 @@ function handleButtons(reaction, user) {
         let embed = new Discord.MessageEmbed()
             .setTitle('LolQuizz')
             .setColor(0xFF0000)
-        let participants = "**Use reactions to execute an action**\n📥 To join the game\n📤 To leave the game\n🤬 To start the game with the current participants\n**Participants:**\n";
+        let participants = "**Use reactions to execute an action**\n📥 To join the game\n📤 To leave the game\n▶️ To start the game with the current participants\n**Participants:**\n";
         for (let i = 0; i < Object.keys(game.Players).length; i++) {
             let user = client.users.cache.get(game.Players[i].userId);
             participants += user.username + " **|** Score: **" + game.Players[i].score + "**\n";

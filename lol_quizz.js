@@ -3,12 +3,12 @@ const champion_data_helper = require('./helpers/champion_data_helper.js');
 
 class LolQuizz {
 
-    get ChannelId() {
-        return this.channelId;
+    get Channel() {
+        return this.channel;
     }
 
-    set ChannelId(value) {
-        this.channelId = value;
+    set Channel(value) {
+        this.channel = value;
     }
 
     get Players() {
@@ -26,14 +26,6 @@ class LolQuizz {
     set State(value) {
         this.state = value;
     }
-
-    // get GuessedChampion() {
-    //     return this.guessedChampion;
-    // }
-
-    // set GuessedChampion(value) {
-    //     this.guessedChampion = value;
-    // }
 
     get Champions() {
         return this.champions;
@@ -83,11 +75,10 @@ class LolQuizz {
         this.previousChampion = value;
     }
 
-    constructor(channelId, discordClient) {
-        this.ChannelId = channelId;
+    constructor(channel, discordClient) {
+        this.Channel = channel;
         this.Players = [];
         this.State = "IN_CREATION";
-        //this.GuessedChampion = [];
         this.Champions = champion_data_helper.getChampions();
         this.Connection = null;
         this.CurrentChampion = null;
@@ -122,6 +113,23 @@ class LolQuizz {
             } else {
                 this.Scoreboard.edit(embed);
             }
+        } else if (this.State == "FINISHED") {
+            const attachment = new Discord.MessageAttachment('./images/author_logo.jpg', 'author_logo.jpg');
+            let embed = new Discord.MessageEmbed()
+            .attachFiles(attachment)
+            .setTitle('LolQuizz')
+            .setColor(0xFF0000)
+            .setFooter('By Sam | イボイノシシ#0878', 'attachment://author_logo.jpg');
+            let podium = this.Players.sort((a,b) => a.score < b.score && 1 || -1);
+            for (let i = 0; i < (podium.length >= 3 ? 3 : podium.length); i++) {
+                let user = this.DiscordClient.users.cache.get(this.Players[i].userId);
+                let icon = '';
+                if (i == 0) icon = '🥇';
+                else if (i == 1) icon = '🥈';
+                else if (i == 2) icon = '🥉';
+                embed.addField(icon + ' ' + user.username, 'Score: **' + podium[i].score + '**', true);
+            }
+            this.channel.send(embed);
         } else {
             return false;
         }
@@ -167,7 +175,6 @@ class LolQuizz {
     nextRound() {
         if (this.State == "IN_GAME" && this.Connection != null) {
             if (this.CurrentChampion != null) {
-                //this.GuessedChampion.push(this.CurrentChampion.id);
                 this.PreviousChampion = this.CurrentChampion;
             }
             this.CurrentChampion = this.pickChampion();
@@ -193,12 +200,6 @@ class LolQuizz {
         let champion = this.Champions[championName];
         delete this.Champions[championName];
         return champion;
-        //let champion = champion_data_helper.selectChampionRandomly();
-        //very ugly and must be changed
-        // while (this.GuessedChampion.indexOf(champion.id) != -1) {
-        //     champion = champion_data_helper.selectChampionRandomly();
-        // }
-        //return champion;
     }
 
     addPlayer(userId) {
