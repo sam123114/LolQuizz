@@ -81,7 +81,7 @@ client.on('message', msg => {
         if (games[guildId].isPlayer(msg.author.id)) {
             let res = games[guildId].validateResponse(msg.author.id, cmd);
             if (res) {
-                msg.reply('Guessed the answer rights and earned a point', {});
+                msg.reply('Guessed the answer rights and earned a point');
                 games[guildId].nextRound();
                 games[guildId].updateScoreBoard(msg.channel);
             }
@@ -134,7 +134,7 @@ function handleButtons(reaction, user) {
                 return;
             }
             if (Object.keys(game.Players).length < 1) {
-                message.channel.send(`<@${user.id}>, There must be at least one participants in order to start the game`);
+                message.channel.send(`<@${user.id}>, There must be at least one participant in order to start the game`);
                 return;
             }
 

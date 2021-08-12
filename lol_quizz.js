@@ -114,6 +114,9 @@ class LolQuizz {
                 this.Scoreboard.edit(embed);
             }
         } else if (this.State == "FINISHED") {
+            if (this.Players.length == 0) {
+                return;
+            }
             const attachment = new Discord.MessageAttachment('./images/author_logo.jpg', 'author_logo.jpg');
             let embed = new Discord.MessageEmbed()
             .attachFiles(attachment)
@@ -168,8 +171,13 @@ class LolQuizz {
 
     stopGame() {
         this.State = "FINISHED";
-        this.Connection.disconnect();
-        this.Scoreboard.reactions.removeAll();
+        if (this.Connection != null) {
+            this.Connection.disconnect();
+            this.Connection = null;
+        }
+        if (this.Scoreboard != null) {
+            this.Scoreboard.reactions.removeAll();
+        }
     }
 
     nextRound() {
