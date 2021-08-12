@@ -74,7 +74,7 @@ client.on('message', msg => {
         }
     } else if ((typeof games[msg.guild.id] !== 'undefined') && games[msg.guild.id].State == "IN_GAME") {
         let guildId = msg.guild.id;
-        if (msg.channel.id != games[guildId].ChannelId) {
+        if (msg.channel.id != games[guildId].Channel.id) {
             return;
         }
         msg.delete();
