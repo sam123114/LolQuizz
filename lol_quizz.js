@@ -1,7 +1,22 @@
-const Discord = require('discord.js');
 const champion_data_helper = require('./helpers/champion_data_helper.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder } = require('discord.js');
+const {
+    joinVoiceChannel,
+    createAudioPlayer,
+    createAudioResource,
+    entersState,
+    VoiceConnectionStatus,
+} = require('@discordjs/voice');
 
 class LolQuizz {
+
+    get GameId() {
+        return this.gameId;
+    }
+
+    set GameId(value) {
+        this.gameId = value;
+    }
 
     get Channel() {
         return this.channel;
@@ -31,7 +46,7 @@ class LolQuizz {
         return this.champions;
     }
 
-    set Champions(value) {
+    set Champions(value) {
         this.champions = value;
     }
 
@@ -43,28 +58,20 @@ class LolQuizz {
         this.connection = value;
     }
 
+    get AudioPlayer() {
+        return this.audioPlayer;
+    }
+
+    set AudioPlayer(value) {
+        this.audioPlayer = value;
+    }
+
     get CurrentChampion() {
         return this.currentChampion;
     }
 
     set CurrentChampion(value) {
         this.currentChampion = value;
-    }
-
-    get Scoreboard() {
-        return this.scoreboard;
-    }
-
-    set Scoreboard(value) {
-        this.scoreboard = value;
-    }
-
-    get DiscordClient() {
-        return this.discordClient;
-    }
-
-    set DiscordClient(value) {
-        this.discordClient = value;
     }
 
     get PreviousChampion() {
@@ -75,78 +82,120 @@ class LolQuizz {
         this.previousChampion = value;
     }
 
-    constructor(channel, discordClient) {
-        this.Channel = channel;
-        this.Players = [];
-        this.State = "IN_CREATION";
-        this.Champions = champion_data_helper.getChampions();
-        this.Connection = null;
-        this.CurrentChampion = null;
-        this.Scoreboard = null;
-        this.DiscordClient = discordClient;
-        this.PreviousChampion = null;
+    get Message() {
+        return this.message;
     }
 
-    async updateScoreBoard(channel, start = false, newMessage = true) {
-        if (this.State == "IN_GAME") {
-            let description = "";
-            if (this.PreviousChampion != null) {
-                description += "**Previous champion**: " + this.PreviousChampion.name + "\n";
-            }
-            let embed = new Discord.MessageEmbed()
+    set Message(value) {
+        this.message = value;
+    }
+
+    constructor(gameId, channel) {
+        this.GameId = gameId;
+        this.Channel = channel;
+        this.Players = [];
+        this.State = 'IN_CREATION';
+        this.Champions = champion_data_helper.getChampions();
+        this.Connection = null;
+        this.AudioPlayer = null;
+        this.CurrentChampion = null;
+        this.PreviousChampion = null;
+        this.Message = null;
+    }
+
+    getCurrentEmbed() {
+        let description = "**Rules:**\nLolQuizz is a game in which you will hear the quote of a random champion and first person to guess the champion wins.\n";
+        let actionRow = null;
+        let attachment = null;
+        const embed = new EmbedBuilder()
             .setTitle('LolQuizz')
-            .setColor(0xFF0000)
-            description += "**Use reactions to execute an action**\n🔄 To replay the current champion's voice line\n⏭ To skip the current champion\n⛔️ To end the game\n**Participants:**\n";
-            for (let i = 0; i < Object.keys(this.Players).length; i++) {
-                let user = this.DiscordClient.users.cache.get(this.Players[i].userId);
-                description += user.username + " **|** Score: **" + this.Players[i].score + "**\n";
+            .setColor(0xFF0000);
+        if (this.State == 'IN_CREATION') {
+            description += "**Participants:**\n";
+            actionRow = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`${this.GameId}_JOIN`)
+                        .setLabel('Join')
+                        .setStyle(ButtonStyle.Secondary)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`${this.GameId}_LEAVE`)
+                        .setLabel('Leave')
+                        .setStyle(ButtonStyle.Secondary)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`${this.GameId}_START`)
+                        .setLabel('Start the game')
+                        .setStyle(ButtonStyle.Success)
+                );
+        } else if (this.State == 'IN_PROGRESS') {
+            if (this.PreviousChampion !== null) {
+                description = `**Previous Champion:**\n${this.PreviousChampion.name}\n${description}`;
             }
-            embed.setDescription(description);
-            if (start || newMessage) {
-                if (!start) {
-                    this.Scoreboard.reactions.removeAll();
-                }
-                this.Scoreboard = await channel.send(embed);
-                this.Scoreboard.react("🔄");
-                this.Scoreboard.react("⏭");
-                this.Scoreboard.react("🚫");
-            } else {
-                this.Scoreboard.edit(embed);
-            }
-        } else if (this.State == "FINISHED") {
-            if (this.Players.length == 0) {
-                return;
-            }
-            const attachment = new Discord.MessageAttachment('./images/author_logo.jpg', 'author_logo.jpg');
-            let embed = new Discord.MessageEmbed()
-            .attachFiles(attachment)
-            .setTitle('LolQuizz')
-            .setColor(0xFF0000)
-            .setFooter('By Sam | イボイノシシ#0878', 'attachment://author_logo.jpg');
-            let podium = this.Players.sort((a,b) => a.score < b.score && 1 || -1);
-            for (let i = 0; i < (podium.length >= 3 ? 3 : podium.length); i++) {
-                let user = this.DiscordClient.users.cache.get(this.Players[i].userId);
+            description += "**Participants:**\n";
+            actionRow = new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`${this.GameId}_REPLAY`)
+                        .setLabel('Replay')
+                        .setStyle(ButtonStyle.Secondary)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`${this.GameId}_SKIP`)
+                        .setLabel('Skip')
+                        .setStyle(ButtonStyle.Secondary)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`${this.GameId}_STOP`)
+                        .setLabel('Stop the game')
+                        .setStyle(ButtonStyle.Success)
+                );
+        } else if (this.State == 'FINISHED') {
+            description = "Thank you for playing LolQuizz! Type **/start** to start a new game.\n**Podium:**";
+            attachment = new AttachmentBuilder('./images/author_logo.jpg');
+            embed.setFooter({ text: 'By Sam | イボイノシシ#0878', iconURL: 'attachment://author_logo.jpg' });
+
+            //sorting player by points and keeping only the top 3
+            let podium = this.Players.sort((a, b) => a.score < b.score && 1 || -1).slice(0, 3);
+            let position = 1;
+            podium.forEach(player => {
                 let icon = '';
-                if (i == 0) icon = '🥇';
-                else if (i == 1) icon = '🥈';
-                else if (i == 2) icon = '🥉';
-                embed.addField(icon + ' ' + user.username, 'Score: **' + podium[i].score + '**', true);
-            }
-            this.channel.send(embed);
+                if (position == 1) icon = '🥇';
+                else if (position == 2) icon = '🥈';
+                else if (position == 3) icon = '🥉';
+                embed.addFields({ name: `${icon} ${player.username}`, value: `Score: **${player.score}**`, inline: true });
+                position++;
+            });
         } else {
             return false;
         }
+
+        if (this.state !== 'FINISHED' && this.Players.length) {
+            this.Players.forEach(user => {
+                description += user.username + " **|** Score: **" + user.score + "**\n";
+            });
+        }
+
+        embed.setDescription(description);
+
+        return { embed: embed, actionRow: actionRow, files: attachment };
     }
 
     validateResponse(userId, championName) {
-        if (this.State == "IN_GAME") {
+        if (this.State == "IN_PROGRESS") {
             let champ = this.CurrentChampion;
             let res = championName.toLowerCase();
             if (champ.id.toLowerCase() == res || champ.name.toLowerCase() == res) {
-                let index = this.players.findIndex(function(value){
+                let index = this.Players.findIndex(function (value) {
                     return value.userId === userId;
                 });
                 this.Players[index].score += 1;
+
                 return true;
             } else {
                 return false;
@@ -156,32 +205,37 @@ class LolQuizz {
         }
     }
 
-    isPlayer(userId) {
-        let index = this.players.findIndex(function(value){
-            return value.userId === userId;
-        });
-        return index != -1;
-    }
-
     async startGame(voiceChannel) {
-        this.State = "IN_GAME";
-        this.Connection = await voiceChannel.join();
-        this.nextRound();
+        this.State = "IN_PROGRESS";
+
+        this.Connection = joinVoiceChannel({
+            channelId: voiceChannel.id,
+            guildId: voiceChannel.guild.id,
+            adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+        });
+
+        try {
+            await entersState(this.Connection, VoiceConnectionStatus.Ready, 30e3);
+
+            this.nextRound();
+        } catch (err) {
+            this.Connection.destroy();
+            console.log(err);
+        }
     }
 
     stopGame() {
         this.State = "FINISHED";
-        if (this.Connection != null) {
-            this.Connection.disconnect();
-            this.Connection = null;
+        if (this.AudioPlayer !== null) {
+            this.AudioPlayer.stop();
         }
-        if (this.Scoreboard != null) {
-            this.Scoreboard.reactions.removeAll();
+        if (this.Connection !== null) {
+            this.Connection.destroy();
         }
     }
 
     nextRound() {
-        if (this.State == "IN_GAME" && this.Connection != null) {
+        if (this.State == "IN_PROGRESS" && this.Connection != null) {
             if (this.CurrentChampion != null) {
                 this.PreviousChampion = this.CurrentChampion;
             }
@@ -194,8 +248,16 @@ class LolQuizz {
     }
 
     playCurrent() {
-        if (this.State == "IN_GAME" && this.Connection != null) {
-            this.Connection.play(`https://cdn.communitydragon.org/11.15.1/champion/${this.CurrentChampion.id}/champ-select/sounds/choose`);
+        if (this.State == "IN_PROGRESS" && this.Connection != null) {
+            const voiceLine = createAudioResource(`https://cdn.communitydragon.org/11.15.1/champion/${this.CurrentChampion.id}/champ-select/sounds/choose`);
+
+            if (!this.AudioPlayer) {
+                this.AudioPlayer = createAudioPlayer()
+                this.Connection.subscribe(this.AudioPlayer);
+            }
+
+            this.AudioPlayer.play(voiceLine);
+
             return true;
         } else {
             return false;
@@ -210,13 +272,14 @@ class LolQuizz {
         return champion;
     }
 
-    addPlayer(userId) {
-        let index = this.players.findIndex(function(value){
-            return value.userId === userId;
+    addPlayer(user) {
+        let index = this.players.findIndex(function (value) {
+            return value.userId === user.id;
         });
         if (index == -1) {
             let player_data = {
-                userId: userId,
+                userId: user.id,
+                username: user.username,
                 score: 0
             }
             this.players.push(player_data);
@@ -226,9 +289,9 @@ class LolQuizz {
         }
     }
 
-    removePlayer(userId) {
-        let index = this.players.findIndex(function(value){
-            return value.userId === userId;
+    removePlayer(user) {
+        let index = this.players.findIndex(function (value) {
+            return value.userId === user.id;
         })
         if (index != -1) {
             this.players.splice(index, 1);
@@ -236,6 +299,12 @@ class LolQuizz {
         } else {
             return false;
         }
+    }
+
+    isPlayer(user) {
+        return this.players.findIndex(function (value) {
+            return value.userId === user.id;
+        }) != -1;
     }
 }
 
