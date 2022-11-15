@@ -1,19 +1,24 @@
 {
-  "name": "lolquizz",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@discordjs/opus": "^0.5.0",
-    "discord.js": "^12.5.3",
-    "dotenv": "^9.0.0",
-    "ffmpeg-static": "^4.3.0",
-    "node-fetch": "^2.6.1",
-    "ytdl-core": "^4.7.0"
-  }
+    "name": "lolquizz",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "stable": "node index.js",
+        "dev": "nodemon index.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@discordjs/opus": "^0.5.0",
+        "@discordjs/voice": "^0.13.0",
+        "discord.js": "^14.6.0",
+        "dotenv": "^9.0.0",
+        "ffmpeg-static": "^4.3.0",
+        "libsodium-wrappers": "^0.7.10",
+        "node-fetch": "^2.6.1"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.20"
+    }
 }
