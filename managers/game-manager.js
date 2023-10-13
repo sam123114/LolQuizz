@@ -13,5 +13,5 @@ exports.clearGame = function (guildId) {
 }
 
 exports.getGame = function (guildId) {
-    return games[guildId] !== undefined ? games[guildId] : false;
+    return games[guildId] !== undefined ? games[guildId] : undefined;
 }

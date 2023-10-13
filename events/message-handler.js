@@ -7,9 +7,11 @@ module.exports = {
         if (msg.author.bot) {
             return;
         }
+
         let guildId = msg.guildId;
         let gameInstance = gameManager.getGame(guildId);
-        if (gameInstance !== false && msg.channel.id == gameInstance.Channel.id) {
+
+        if (gameInstance !== undefined && msg.channel.id == gameInstance.Channel.id) {
             if (gameInstance.State != 'IN_PROGRESS') {
                 return;
             }
