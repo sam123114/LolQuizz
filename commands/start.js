@@ -17,19 +17,21 @@ module.exports = {
         //we want to add the game to the games array
         let guildId = interaction.guildId;
         let gameInstance = gameManager.getGame(guildId);
-        if (gameInstance === false) {
-            gameInstance = gameManager.addGame(guildId, interaction.channel);
 
-            //sending embed for game settings
-            result = gameInstance.getCurrentEmbed();
-            if (result !== false) {
-                interaction.reply({ embeds: [result.embed], components: [result.actionRow] });
-                gameInstance.Message = await interaction.fetchReply();
-            } else {
-                interaction.reply({ content: 'An error occured while generating the embed', ephemeral: true });
-            }
-        } else {
+        if (gameInstance !== undefined) {
             interaction.reply({ content: 'A game is already in progress in this server', ephemeral: true });
+            return;
+        }
+
+        gameInstance = gameManager.addGame(guildId, interaction.channel);
+
+        //sending embed for game settings
+        result = gameInstance.getCurrentEmbed();
+        if (result !== false) {
+            interaction.reply({ embeds: [result.embed], components: [result.actionRow] });
+            gameInstance.Message = await interaction.fetchReply();
+        } else {
+            interaction.reply({ content: 'An error occured while generating the embed', ephemeral: true });
         }
     },
 };

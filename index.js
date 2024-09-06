@@ -1,7 +1,7 @@
 //Lib
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, ActivityType } = require('discord.js');
 const fetch = require("node-fetch");
 
 // Create a new client instance
@@ -40,11 +40,13 @@ require('dotenv').config()
 //Loading helpers
 const champion_data_helper = require('./helpers/champion_data_helper.js');
 
+//declaring deployer in order to deploy commands to servers
+const deployer = require("./deploy-commands.js");
+
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
 
     //deploying commands
-    const deployer = require("./deploy-commands.js");
     clientGuilds = client.guilds.cache.map(guild => guild.id);
     clientGuilds.forEach(guildId => {
         deployer.deployCommands(client.user.id, guildId);
@@ -56,7 +58,12 @@ client.on('ready', () => {
         champion_data_helper.updateChampionData(json[0]);
     }).catch(console.error);
 
-    client.user.setActivity('.info', { type: 'LISTENING' });
+    client.user.setActivity('Use "/info" for rules and available commands', { type: ActivityType.Custom });
 });
+
+client.on("guildCreate", guild => {
+    console.log("Joined a new guild: " + guild.name);
+    deployer.deployCommands(client.user.id, guild.id);
+})
 
 client.login(process.env.DISCORD_TOKEN);

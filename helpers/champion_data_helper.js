@@ -4,7 +4,10 @@ const { resolve } = require('path');
 
 const dataFilePath = './data/champion_data.json';
 
+let version;
+
 exports.updateChampionData = function (lastestVersion) {
+    version = lastestVersion;
     try {
         let createOrUpdateFile = false;
 
@@ -49,4 +52,8 @@ const ReadFileSync = function (filePath) {
 
 const WriteFileSync = function (filePath, jsonString) {
     fs.writeFileSync(filePath, jsonString);
+}
+
+exports.getVersion = function() {
+    return version;
 }

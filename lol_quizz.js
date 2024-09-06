@@ -2,6 +2,7 @@ const champion_data_helper = require('./helpers/champion_data_helper.js');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, AttachmentBuilder } = require('discord.js');
 const {
     joinVoiceChannel,
+    getVoiceConnection,
     createAudioPlayer,
     createAudioResource,
     entersState,
@@ -50,14 +51,6 @@ class LolQuizz {
         this.champions = value;
     }
 
-    get Connection() {
-        return this.connection;
-    }
-
-    set Connection(value) {
-        this.connection = value;
-    }
-
     get AudioPlayer() {
         return this.audioPlayer;
     }
@@ -96,7 +89,6 @@ class LolQuizz {
         this.Players = [];
         this.State = 'IN_CREATION';
         this.Champions = champion_data_helper.getChampions();
-        this.Connection = null;
         this.AudioPlayer = null;
         this.CurrentChampion = null;
         this.PreviousChampion = null;
@@ -153,7 +145,7 @@ class LolQuizz {
                     new ButtonBuilder()
                         .setCustomId(`${this.GameId}_STOP`)
                         .setLabel('Stop the game')
-                        .setStyle(ButtonStyle.Success)
+                        .setStyle(ButtonStyle.Danger)
                 );
         } else if (this.State == 'FINISHED') {
             description = "Thank you for playing LolQuizz! Type **/start** to start a new game.\n**Podium:**";
@@ -208,34 +200,46 @@ class LolQuizz {
     async startGame(voiceChannel) {
         this.State = "IN_PROGRESS";
 
-        this.Connection = joinVoiceChannel({
+        const connection = joinVoiceChannel({
             channelId: voiceChannel.id,
             guildId: voiceChannel.guild.id,
             adapterCreator: voiceChannel.guild.voiceAdapterCreator,
         });
 
+        connection.on('stateChange', (oldState, newState) => {
+            console.log('Voice connection state changed from', oldState.status, 'to', newState.status);
+
+            if (oldState.status === VoiceConnectionStatus.Ready && newState.status === VoiceConnectionStatus.Connecting) {
+                connection.configureNetworking();
+            }
+        });
+
         try {
-            await entersState(this.Connection, VoiceConnectionStatus.Ready, 30e3);
+            await entersState(connection, VoiceConnectionStatus.Ready, 30e3);
 
             this.nextRound();
         } catch (err) {
-            this.Connection.destroy();
+            connection.destroy();
             console.log(err);
         }
     }
 
     stopGame() {
+        const connection = getVoiceConnection(this.Channel.guildId);
+
         this.State = "FINISHED";
         if (this.AudioPlayer !== null) {
             this.AudioPlayer.stop();
         }
-        if (this.Connection !== null) {
-            this.Connection.destroy();
+        if (connection !== undefined) {
+            connection.destroy();
         }
     }
 
     nextRound() {
-        if (this.State == "IN_PROGRESS" && this.Connection != null) {
+        const connection = getVoiceConnection(this.Channel.guildId);
+
+        if (this.State == "IN_PROGRESS" && connection != undefined) {
             if (this.CurrentChampion != null) {
                 this.PreviousChampion = this.CurrentChampion;
             }
@@ -248,12 +252,15 @@ class LolQuizz {
     }
 
     playCurrent() {
-        if (this.State == "IN_PROGRESS" && this.Connection != null) {
-            const voiceLine = createAudioResource(`https://cdn.communitydragon.org/11.15.1/champion/${this.CurrentChampion.id}/champ-select/sounds/choose`);
+        const connection = getVoiceConnection(this.Channel.guildId);
+        let version = champion_data_helper.getVersion();
+
+        if (this.State == "IN_PROGRESS" && connection != null) {
+            const voiceLine = createAudioResource(`https://cdn.communitydragon.org/${version}/champion/${this.CurrentChampion.id}/champ-select/sounds/choose`);
 
             if (!this.AudioPlayer) {
                 this.AudioPlayer = createAudioPlayer()
-                this.Connection.subscribe(this.AudioPlayer);
+                connection.subscribe(this.AudioPlayer);
             }
 
             this.AudioPlayer.play(voiceLine);
