@@ -2,7 +2,8 @@ const fs = require('fs');
 const fetch = require("node-fetch");
 const { resolve } = require('path');
 
-const dataFilePath = './data/champion_data.json';
+const DATA_FILE_PATH   = './data/champion_data.json';
+const DATA_FOLDER_PATH = './data';
 
 let version;
 
@@ -11,12 +12,12 @@ exports.updateChampionData = function (lastestVersion) {
     try {
         let createOrUpdateFile = false;
 
-        if (!fs.existsSync(dataFilePath)) {
+        if (!fs.existsSync(DATA_FILE_PATH)) {
             //if the file doesn't exist, we want to create it.
             createOrUpdateFile = true;
         } else {
             //if the file does exist, we want to update it if necessary.
-            const championData = ReadFileSync(dataFilePath);
+            const championData = readFileSync(DATA_FILE_PATH);
             if (championData.version !== lastestVersion) {
                 createOrUpdateFile = true;
             }
@@ -24,7 +25,10 @@ exports.updateChampionData = function (lastestVersion) {
 
         if (createOrUpdateFile) {
             fetchChampionData(lastestVersion).then(new_champion_data => {
-                WriteFileSync(dataFilePath, JSON.stringify(new_champion_data));
+                if (!fs.existsSync(DATA_FOLDER_PATH)) {
+                    createFolder(DATA_FOLDER_PATH);
+                }
+                writeFileSync(DATA_FILE_PATH, JSON.stringify(new_champion_data));
                 console.log("Champion data file was updated. New version: " + lastestVersion);
             });
         } else {
@@ -36,7 +40,7 @@ exports.updateChampionData = function (lastestVersion) {
 }
 
 exports.getChampions = function () {
-    const champion_data = ReadFileSync(dataFilePath);
+    const champion_data = readFileSync(DATA_FILE_PATH);
     return champion_data.data;
 }
 
@@ -45,12 +49,16 @@ const fetchChampionData = function (version) {
     return fetch(`http://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`).then(res => res.json()).then(json => json).catch(console.error);
 }
 
-const ReadFileSync = function (filePath) {
+const readFileSync = function (filePath) {
     const data = fs.readFileSync(filePath);
     return JSON.parse(data);
 }
 
-const WriteFileSync = function (filePath, jsonString) {
+const createFolder = function (folderPath) {
+    fs.mkdirSync(folderPath)
+}
+
+const writeFileSync = function (filePath, jsonString) {
     fs.writeFileSync(filePath, jsonString);
 }
 
