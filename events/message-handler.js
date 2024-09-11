@@ -23,15 +23,15 @@ module.exports = {
                 return
             }
 
-            if (gameInstance.validateResponse(msg.author.id, msg.content)) {
+            if (gameInstance.validateResponse(msg.author, msg.content)) {
                 //starting next round
                 gameInstance.nextRound();
-
-                //updating message
-                result = gameInstance.getCurrentEmbed();
-
-                gameInstance.Message.edit({ embeds: [result.embed], components: [result.actionRow] });
             }
+
+            //updating message
+            result = gameInstance.getCurrentEmbed();
+
+            gameInstance.Message.edit({ embeds: [result.embed], components: [result.actionRow] });
         }
     },
 };
