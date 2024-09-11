@@ -29,6 +29,7 @@ module.exports = {
                 }
                 if (gameInstance.Players.length === 0) {
                     interaction.reply({ content: 'There needs to be at least one player in order to start the game', ephemeral: true });
+                    return;
                 }
                 gameInstance.startGame(interaction.member.voice.channel);
             } else {

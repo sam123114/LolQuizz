@@ -24,11 +24,11 @@ exports.updateChampionData = function (lastestVersion) {
         }
 
         if (createOrUpdateFile) {
-            fetchChampionData(lastestVersion).then(new_champion_data => {
+            fetchChampionData(lastestVersion).then(newChampionData => {
                 if (!fs.existsSync(DATA_FOLDER_PATH)) {
                     createFolder(DATA_FOLDER_PATH);
                 }
-                writeFileSync(DATA_FILE_PATH, JSON.stringify(new_champion_data));
+                writeFileSync(DATA_FILE_PATH, JSON.stringify(newChampionData));
                 console.log("Champion data file was updated. New version: " + lastestVersion);
             });
         } else {
