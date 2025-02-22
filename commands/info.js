@@ -9,7 +9,7 @@ module.exports = {
         const infoEmbed = new EmbedBuilder()
             .setTitle('LolQuizz')
             .setColor(0xFF0000)
-            .setDescription('**Rules:**\nLolQuizz is a game in which you will hear the quote of a random League of Legends champion and the first person to guess the champion wins.\n**Commands:**\n🔸 **/info** Rules and list of command\n🔸 **/start** Start a new game\n🔸 **/stop** End the game')
+            .setDescription('**Rules:**\nLolQuizz is a game in which you will hear the quote of a random champion and first person to guess the champion by typing their name correctly in the channel wins.\n**Commands:**\n🔸 **/info** Rules and list of command\n🔸 **/start** Start a new game\n🔸 **/stop** End the game')
             .setFooter({ text: 'By Sam | イボイノシシ#0878', iconURL: 'attachment://author_logo.jpg' });
         interaction.reply({ embeds: [infoEmbed], files: [attachment] });
     },
