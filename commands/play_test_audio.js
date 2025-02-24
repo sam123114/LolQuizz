@@ -4,6 +4,7 @@ const {
     createAudioPlayer,
     createAudioResource,
     VoiceConnectionStatus,
+    AudioPlayerStatus
 } = require('@discordjs/voice');
 
 module.exports = {
