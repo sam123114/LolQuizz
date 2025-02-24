@@ -23,8 +23,10 @@ module.exports = {
             // Save the file
             await streamPipeline(response.body, fs.createWriteStream(filePath));
             console.log('Download complete.');
+            interaction.reply({ content: 'Download complete', ephemeral: true });
         } catch (error) {
             console.error('Error downloading or playing file:', error);
+            interaction.reply({ content: 'Download failed', ephemeral: true });
             return null;
         }
     },

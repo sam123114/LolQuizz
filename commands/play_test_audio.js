@@ -37,8 +37,10 @@ module.exports = {
         if (resource) {
             player.play(resource);
             console.log('Playing audio...');
+            interaction.reply({ content: 'Playing audio', ephemeral: true });
         } else {
             console.error('Failed to create audio resource.');
+            interaction.reply({ content: 'Failed to create audio resource', ephemeral: true });
         }
 
         player.stop();
