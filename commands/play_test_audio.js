@@ -29,15 +29,22 @@ module.exports = {
             if (oldState.status === VoiceConnectionStatus.Ready && newState.status === VoiceConnectionStatus.Connecting) {
                 connection.configureNetworking();
             }
-
-            if (newState.status === AudioPlayerStatus.Idle) {
-                player.stop();
-                connection.destroy();
-            }
         });
 
         player.on('error', (error) => {
             console.error('Audio player error:', error);
+        });
+
+        player.on('stateChange', (oldState, newState) => {
+            if (oldState.status !== newState.status) {
+                console.log(`Player state changed from ${oldState.status} to ${newState.status}`);
+            }
+        
+            if (newState.status === AudioPlayerStatus.Idle) {
+                console.log('Audio finished playing!');
+                player.stop();
+                connection.destroy();
+            }
         });
 
         if (resource) {
