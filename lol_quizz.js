@@ -301,6 +301,7 @@ class LolQuizz {
             var request = https.get("https://cdn.communitydragon.org/${version}/champion/${this.CurrentChampion.id}/champ-select/sounds/choose", function(response) {
                 response.pipe(file);
             });
+            console.log(request);
             const voiceLine = createAudioResource(`/home/ec2-user/projects/LolQuizz/test_audio.ogg`);
             voiceLine.playStream.on('error', error => {
                 console.error('Error:', error.message, 'with track', resource.metadata.title);
