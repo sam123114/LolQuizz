@@ -3,7 +3,6 @@ const fs = require('fs');
 const { pipeline } = require('stream');
 const fetch = require('node-fetch');
 const { promisify } = require('util');
-const { createAudioResource } = require('@discordjs/voice');
 
 const streamPipeline = promisify(pipeline);
 
