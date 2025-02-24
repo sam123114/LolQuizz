@@ -302,7 +302,9 @@ class LolQuizz {
                 response.pipe(file);
             });
             const voiceLine = createAudioResource(`/home/ec2-user/projects/LolQuizz/test_audio.ogg`);
-
+            voiceLine.playStream.on('error', error => {
+                console.error('Error:', error.message, 'with track', resource.metadata.title);
+            });
             if (!this.AudioPlayer) {
                 this.AudioPlayer = createAudioPlayer()
                 this.AudioPlayer.on('error', (error) => {
