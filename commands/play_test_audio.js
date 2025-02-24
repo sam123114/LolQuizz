@@ -1,3 +1,4 @@
+const { SlashCommandBuilder } = require('discord.js');
 const {
     joinVoiceChannel,
     createAudioPlayer,
@@ -6,8 +7,8 @@ const {
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('dl_audio')
-        .setDescription("This is a test function used to download audio file"),
+        .setName('play_test_audio')
+        .setDescription("This is a test function used play downloaded audio file"),
     async execute(interaction) {
         const filePath = './test_audio.ogg'
         const resource = createAudioResource(filePath);
