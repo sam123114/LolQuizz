@@ -299,6 +299,9 @@ class LolQuizz {
 
             if (!this.AudioPlayer) {
                 this.AudioPlayer = createAudioPlayer()
+                this.AudioPlayer.on('error', (error) => {
+                    console.error('Audio player error:', error);
+                });
                 connection.subscribe(this.AudioPlayer);
             }
 
