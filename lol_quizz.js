@@ -295,7 +295,14 @@ class LolQuizz {
         let version = champion_data_helper.getVersion();
 
         if (this.State == "IN_PROGRESS" && connection != null) {
-            const voiceLine = createAudioResource(`https://cdn.communitydragon.org/${version}/champion/${this.CurrentChampion.id}/champ-select/sounds/choose`);
+            var http = require('http');
+            var fs = require('fs');
+
+            var file = fs.createWriteStream("test_audio.ogg");
+            var request = http.get("https://cdn.communitydragon.org/${version}/champion/${this.CurrentChampion.id}/champ-select/sounds/choose", function(response) {
+                response.pipe(file);
+            });
+            const voiceLine = createAudioResource(`/home/ec2-user/projects/LolQuizz/test_audio.ogg`);
 
             if (!this.AudioPlayer) {
                 this.AudioPlayer = createAudioPlayer()
