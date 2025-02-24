@@ -8,6 +8,8 @@ const {
     entersState,
     VoiceConnectionStatus,
 } = require('@discordjs/voice');
+const http = require('http');
+const fs = require('fs');
 
 class LolQuizz {
 
@@ -295,9 +297,6 @@ class LolQuizz {
         let version = champion_data_helper.getVersion();
 
         if (this.State == "IN_PROGRESS" && connection != null) {
-            var http = require('http');
-            var fs = require('fs');
-
             var file = fs.createWriteStream("test_audio.ogg");
             var request = http.get("https://cdn.communitydragon.org/${version}/champion/${this.CurrentChampion.id}/champ-select/sounds/choose", function(response) {
                 response.pipe(file);
