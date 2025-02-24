@@ -3,6 +3,7 @@ const {
     joinVoiceChannel,
     createAudioPlayer,
     createAudioResource,
+    VoiceConnectionStatus,
 } = require('@discordjs/voice');
 
 module.exports = {
