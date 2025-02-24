@@ -29,6 +29,11 @@ module.exports = {
             if (oldState.status === VoiceConnectionStatus.Ready && newState.status === VoiceConnectionStatus.Connecting) {
                 connection.configureNetworking();
             }
+
+            if (newState.status === AudioPlayerStatus.Idle) {
+                player.stop();
+                connection.destroy();
+            }
         });
 
         player.on('error', (error) => {
@@ -43,8 +48,5 @@ module.exports = {
             console.error('Failed to create audio resource.');
             interaction.reply({ content: 'Failed to create audio resource', ephemeral: true });
         }
-
-        player.stop();
-        connection.destroy();
     },
 };
