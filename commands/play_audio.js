@@ -4,7 +4,8 @@ const {
     createAudioPlayer,
     createAudioResource,
     VoiceConnectionStatus,
-    AudioPlayerStatus
+    AudioPlayerStatus,
+    StreamType
 } = require('@discordjs/voice');
 
 module.exports = {
@@ -12,7 +13,12 @@ module.exports = {
         .setName('play_audio')
         .setDescription("This is a test function used play remote audio file"),
     async execute(interaction) {
-        const resource = createAudioResource('https://cdn.communitydragon.org/15.4.1/champion/gnar/champ-select/sounds/choose');
+        const resource = createAudioResource(
+            'https://cdn.communitydragon.org/15.4.1/champion/gnar/champ-select/sounds/choose',
+            {
+                inputType: StreamType.Arbitrary
+            }
+        );
 
         const connection = joinVoiceChannel({
             channelId: interaction.member.voice.channel.id,
