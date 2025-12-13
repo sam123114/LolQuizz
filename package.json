@@ -2,23 +2,33 @@
     "name": "lolquizz",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "src/index.js",
     "scripts": {
-        "stable": "node index.js",
-        "dev": "nodemon index.js"
+        "stable": "node dist/index.js",
+        "dev": "nodemon src/index.ts",
+        "build": "tsc"
     },
     "author": "",
     "license": "ISC",
     "dependencies": {
         "@discordjs/opus": "^0.9.0",
-        "@discordjs/voice": "^0.17.0",
-        "discord.js": "^14.6.0",
+        "@discordjs/voice": "^0.19.1-dev.1765584117-c4fc79a3c",
+        "@snazzah/davey": "^0.1.8",
+        "discord.js": "^14.25.1",
         "dotenv": "^16.4.5",
         "ffmpeg-static": "^5.2.0",
-        "libsodium-wrappers": "^0.7.10",
-        "node-fetch": "^2.6.1"
+        "libsodium-wrappers": "^0.7.15",
+        "node-fetch": "^2.6.1",
+        "sodium-native": "^5.0.10"
     },
     "devDependencies": {
-        "nodemon": "^3.1.4"
+        "@types/node": "^25.0.1",
+        "@typescript-eslint/eslint-plugin": "^8.49.0",
+        "@typescript-eslint/parser": "^8.49.0",
+        "eslint": "^8.57.0",
+        "nodemon": "^3.1.4",
+        "prettier": "^3.7.4",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.3"
     }
 }

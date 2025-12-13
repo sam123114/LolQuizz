@@ -1,3 +1,4 @@
 .env
 /data/champion_data.json
 /node_modules
+/dist
