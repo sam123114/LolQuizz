@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import { ChampionData, Champions } from '../types';
+import logger from '../utils/logger';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const fetch = require('node-fetch');
 
@@ -30,13 +31,13 @@ export function updateChampionData(lastestVersion: string): void {
                     createFolder(DATA_FOLDER_PATH);
                 }
                 writeFileSync(DATA_FILE_PATH, JSON.stringify(newChampionData));
-                console.log('Champion data file was updated. New version: ' + lastestVersion);
+                logger.info('Champion data file was updated. New version: ' + lastestVersion);
             });
         } else {
-            console.log('No update available');
+            logger.info('No update available');
         }
     } catch (ex) {
-        console.log(ex);
+        logger.error(ex);
     }
 }
 
@@ -54,7 +55,7 @@ function fetchChampionData(version: string): Promise<ChampionData> {
     return fetch(`http://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`)
         .then((res: { json: () => Promise<ChampionData> }) => res.json())
         .then((json: ChampionData) => json)
-        .catch(console.error);
+        .catch(logger.error);
 }
 
 function readFileSync(filePath: string): ChampionData {

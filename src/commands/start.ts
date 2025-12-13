@@ -15,7 +15,9 @@ module.exports = {
     async execute(interaction: ChatInputCommandInteraction) {
         //we want to add the game to the games array
         const guildId = interaction.guildId;
-        if (!guildId || !interaction.channel) return; // Should likely handle DM/missing guild case
+        if (!guildId || !interaction.channel) {
+            return;
+        } // Should likely handle DM/missing guild case
 
         let gameInstance = gameManager.getGame(guildId);
 
