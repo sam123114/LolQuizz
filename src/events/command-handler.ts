@@ -1,8 +1,12 @@
+import { Events, ChatInputCommandInteraction } from 'discord.js';
+import { QuizzClient } from '../types';
+
 module.exports = {
-    name: 'interactionCreate',
+    name: Events.InteractionCreate,
     once: false,
-    async execute(interaction) {
-        const client = interaction.client;
+    async execute(interaction: ChatInputCommandInteraction) {
+        // In djs v14+, client is on the interaction
+        const client = interaction.client as QuizzClient;
 
         if (!interaction.isChatInputCommand()) return;
 

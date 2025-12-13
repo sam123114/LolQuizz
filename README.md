@@ -6,6 +6,8 @@ LolQuizz is a project created with the goal of creating a Discord bot that will 
 
 - Git
 - Node.js
+- Python
+- windows build tools (npm install --global --production --add-python-to-path windows-build-tools)
 
 ## Installation
 
