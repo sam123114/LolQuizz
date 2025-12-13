@@ -3,36 +3,43 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { REST } from '@discordjs/rest';
-import { Routes } from 'discord.js';
+import { REST, Routes } from 'discord.js';
 import 'dotenv/config';
+import logger from './utils/logger';
 
 const commands: unknown[] = [];
-// Adjust path to point to current directory's commands folder
+// Grab all the command files from the commands directory
 const commandsPath = path.join(__dirname, 'commands');
-
-// In TS source, we look for .ts files. In built JS, they'll be .js. 
-// A robust way in dev/prod hybrid is to check extensions.
-const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.ts') || file.endsWith('.js'));
+const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith('.js') || file.endsWith('.ts'));
 
 for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const command = require(filePath);
-    if (command.data) {
+    if ('data' in command && 'execute' in command) {
         commands.push(command.data.toJSON());
+    } else {
+        logger.warn(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
     }
 }
 
-const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN as string);
+// Construct and prepare an instance of the REST module
+const rest = new REST().setToken(process.env.DISCORD_TOKEN as string);
 
-export function deployCommands(clientId: string, guildId: string): void {
-    rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
-        .then(() => console.log(`Successfully registered application commands for guild ID (${guildId})`))
-        .catch((err: Error) =>
-            console.log(
-                `Failed to deploy application commands on guild ID (${guildId}). Error: ${(err as { rawError?: { message?: string } })?.rawError?.message
-                }`,
-            ),
-        );
+// and deploy your commands!
+export async function deployCommands(clientId: string, _guildId: string): Promise<void> {
+    try {
+        logger.info(`Started refreshing ${commands.length} application (/) commands.`);
+
+        // The put method is used to fully refresh all commands in the guild with the current set
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const data: any = await rest.put(Routes.applicationCommands(clientId), {
+            body: commands,
+        });
+
+        logger.info(`Successfully reloaded ${data.length} application (/) commands.`);
+    } catch (error) {
+        // And of course, make sure you catch and log any errors!
+        logger.error(error);
+    }
 }

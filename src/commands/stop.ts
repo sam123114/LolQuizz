@@ -6,7 +6,9 @@ module.exports = {
     async execute(interaction: ChatInputCommandInteraction) {
         //we want to add the game to the games array
         const guildId = interaction.guildId;
-        if (!guildId) return;
+        if (!guildId) {
+            return;
+        }
 
         const gameInstance = gameManager.getGame(guildId);
 

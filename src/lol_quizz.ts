@@ -1,4 +1,5 @@
 import * as champion_data_helper from './helpers/champion_data_helper';
+import logger from './utils/logger';
 import {
     EmbedBuilder,
     ActionRowBuilder,
@@ -11,7 +12,7 @@ import {
     VoiceBasedChannel,
     GuildTextBasedChannel,
     APIActionRowComponent,
-    APIButtonComponent
+    APIButtonComponent,
 } from 'discord.js';
 import {
     joinVoiceChannel,
@@ -148,7 +149,7 @@ export class LolQuizz {
         const embed = new EmbedBuilder()
             // .setTitle('LolQuizz')
             .setColor(0xff0000);
-        if (this.State == 'IN_CREATION') {
+        if (this.State === 'IN_CREATION') {
             //participants section
             description +=
                 '**Rules:**\nLolQuizz is a game in which you will hear the quote of a random champion and first person to guess the champion by typing their name correctly in the channel wins.\n**Participants:**\n';
@@ -177,7 +178,7 @@ export class LolQuizz {
                         .setStyle(ButtonStyle.Success),
                 )
                 .toJSON();
-        } else if (this.State == 'IN_PROGRESS') {
+        } else if (this.State === 'IN_PROGRESS') {
             //participants section
             description += '**Participants:**\n';
             this.Players.forEach((user) => {
@@ -228,7 +229,7 @@ export class LolQuizz {
                         .setStyle(ButtonStyle.Danger),
                 )
                 .toJSON();
-        } else if (this.State == 'FINISHED') {
+        } else if (this.State === 'FINISHED') {
             description = 'Thank you for playing LolQuizz! Type **/start** to start a new game.\n**Podium:**';
 
             //sorting player by points and keeping only the top 3
@@ -236,9 +237,13 @@ export class LolQuizz {
             let position = 1;
             podium.forEach((player) => {
                 let icon = '';
-                if (position == 1) icon = '🥇';
-                else if (position == 2) icon = '🥈';
-                else if (position == 3) icon = '🥉';
+                if (position === 1) {
+                    icon = '🥇';
+                } else if (position === 2) {
+                    icon = '🥈';
+                } else if (position === 3) {
+                    icon = '🥉';
+                }
                 embed.addFields({
                     name: `${icon} ${player.displayName}`,
                     value: `Score: **${player.score}**`,
@@ -266,7 +271,7 @@ export class LolQuizz {
     }
 
     validateResponse(user: User, championName: string): boolean {
-        if (this.State == 'IN_PROGRESS') {
+        if (this.State === 'IN_PROGRESS') {
             const userId = user.id;
             const champ = this.CurrentChampion;
             const answer = championName.toLowerCase();
@@ -294,7 +299,7 @@ export class LolQuizz {
     }
 
     isCorrectAnswer(champion: Champion, answer: string): boolean {
-        return champion.id.toLowerCase() == answer || champion.name.toLowerCase() == answer;
+        return champion.id.toLowerCase() === answer || champion.name.toLowerCase() === answer;
     }
 
     async startGame(voiceChannel: VoiceBasedChannel): Promise<void> {
@@ -308,7 +313,7 @@ export class LolQuizz {
         });
 
         connection.on('stateChange', (oldState, newState) => {
-            console.log('Voice connection state changed from', oldState.status, 'to', newState.status);
+            logger.info('Voice connection state changed from ' + oldState.status + ' to ' + newState.status);
 
             if (
                 oldState.status === VoiceConnectionStatus.Ready &&
@@ -326,7 +331,7 @@ export class LolQuizz {
             await this.nextRound();
         } catch (err) {
             connection.destroy();
-            console.log(err);
+            logger.error(err);
         }
     }
 
@@ -351,25 +356,25 @@ export class LolQuizz {
         }
         const connection = getVoiceConnection(this.Channel.guildId);
 
-        if (this.State == 'IN_PROGRESS' && connection != undefined) {
-            if (this.CurrentChampion != null) {
+        if (this.State === 'IN_PROGRESS' && connection !== undefined) {
+            if (this.CurrentChampion !== null) {
                 this.PreviousChampion = this.CurrentChampion;
             }
             this.CurrentChampion = this.pickChampion();
 
             // Fetch and buffer audio
             try {
-                const version = champion_data_helper.getVersion();
+                const version = champion_data_helper.getVersion() || 'latest';
                 const url = `https://cdn.communitydragon.org/${version}/champion/${this.CurrentChampion.id}/champ-select/sounds/choose`;
                 const response = await fetch(url);
                 if (response.ok) {
                     this.currentAudioBuffer = await response.buffer();
                 } else {
-                    console.error(`Failed to fetch audio for ${this.CurrentChampion.id}: ${response.statusText}`);
+                    logger.error(`Failed to fetch audio for ${this.CurrentChampion.id}: ${response.statusText}`);
                     this.currentAudioBuffer = null;
                 }
             } catch (error) {
-                console.error('Error fetching audio:', error);
+                logger.error('Error fetching audio: ' + error);
                 this.currentAudioBuffer = null;
             }
 
@@ -386,7 +391,7 @@ export class LolQuizz {
         }
         const connection = getVoiceConnection(this.Channel.guildId);
 
-        if (this.State == 'IN_PROGRESS' && connection) {
+        if (this.State === 'IN_PROGRESS' && connection) {
             const stream = Readable.from(this.currentAudioBuffer);
             const voiceLine = createAudioResource(stream, {
                 inputType: StreamType.Arbitrary,
@@ -417,7 +422,7 @@ export class LolQuizz {
         const index = this.players.findIndex(function (value) {
             return value.userId === user.id;
         });
-        if (index == -1) {
+        if (index === -1) {
             const player_data: Player = {
                 userId: user.id,
                 displayName: user.displayName, // displayName might not exist on User, but on GuildMember. Double check later.
@@ -434,7 +439,7 @@ export class LolQuizz {
         const index = this.players.findIndex(function (value) {
             return value.userId === user.id;
         });
-        if (index != -1) {
+        if (index !== -1) {
             this.players.splice(index, 1);
             return true;
         } else {
@@ -446,7 +451,7 @@ export class LolQuizz {
         return (
             this.players.findIndex(function (value) {
                 return value.userId === user.id;
-            }) != -1
+            }) !== -1
         );
     }
 

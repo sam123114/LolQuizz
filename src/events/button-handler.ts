@@ -5,10 +5,14 @@ module.exports = {
     name: Events.InteractionCreate,
     once: false,
     async execute(interaction: ButtonInteraction) {
-        if (!interaction.isButton()) return;
+        if (!interaction.isButton()) {
+            return;
+        }
 
         const guildId = interaction.guildId;
-        if (!guildId) return;
+        if (!guildId) {
+            return;
+        }
 
         const gameInstance = gameManager.getGame(guildId);
 
@@ -23,12 +27,12 @@ module.exports = {
         // Need to cast member to GuildMember to access voice
         const member = interaction.member as GuildMember;
 
-        if (gameInstance.State == 'IN_CREATION') {
-            if (action == 'JOIN') {
+        if (gameInstance.State === 'IN_CREATION') {
+            if (action === 'JOIN') {
                 gameInstance.addPlayer(interaction.user);
-            } else if (action == 'LEAVE') {
+            } else if (action === 'LEAVE') {
                 gameInstance.removePlayer(interaction.user);
-            } else if (action == 'START') {
+            } else if (action === 'START') {
                 if (!member.voice.channel) {
                     await interaction.reply({
                         content: 'You need to enter a voice channel in order to start the game',
@@ -48,12 +52,12 @@ module.exports = {
                 await interaction.reply({ content: 'An error occured', ephemeral: true });
                 return;
             }
-        } else if (gameInstance.State == 'IN_PROGRESS') {
-            if (action == 'REPLAY') {
+        } else if (gameInstance.State === 'IN_PROGRESS') {
+            if (action === 'REPLAY') {
                 gameInstance.playCurrent();
-            } else if (action == 'SKIP') {
+            } else if (action === 'SKIP') {
                 await gameInstance.nextRound();
-            } else if (action == 'STOP') {
+            } else if (action === 'STOP') {
                 gameInstance.stopGame();
                 gameManager.clearGame(guildId);
             } else {

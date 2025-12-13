@@ -1,5 +1,6 @@
 import { Events, Message } from 'discord.js';
 import * as gameManager from '../managers/game-manager';
+import logger from '../utils/logger';
 
 module.exports = {
     name: Events.MessageCreate,
@@ -10,12 +11,14 @@ module.exports = {
         }
 
         const guildId = msg.guildId;
-        if (!guildId) return;
+        if (!guildId) {
+            return;
+        }
 
         const gameInstance = gameManager.getGame(guildId);
 
-        if (gameInstance !== undefined && gameInstance.Channel && msg.channel.id == gameInstance.Channel.id) {
-            if (gameInstance.State != 'IN_PROGRESS') {
+        if (gameInstance !== undefined && gameInstance.Channel && msg.channel.id === gameInstance.Channel.id) {
+            if (gameInstance.State !== 'IN_PROGRESS') {
                 return;
             }
 
@@ -23,7 +26,7 @@ module.exports = {
             try {
                 await msg.delete();
             } catch (e) {
-                console.log("Could not delete message: " + e);
+                logger.error('Could not delete message: ' + e);
             }
 
             if (!gameInstance.isPlayer(msg.author)) {

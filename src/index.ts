@@ -7,6 +7,7 @@ import 'dotenv/config';
 import * as champion_data_helper from './helpers/champion_data_helper';
 import * as deployer from './deploy-commands';
 import { QuizzClient } from './types';
+import logger from './utils/logger';
 
 // Create a new client instance
 const client = new Client({
@@ -53,15 +54,17 @@ for (const file of commandFiles) {
 
 //Listening for new guilds
 client.on('guildCreate', (guild: Guild) => {
-    console.log('Joined a new guild: ' + guild.name);
+    logger.info('Joined a new guild: ' + guild.name);
     if (client.user) {
         deployer.deployCommands(client.user.id, guild.id);
     }
 });
 
 client.on('ready', () => {
-    if (!client.user) return;
-    console.log(`Logged in as ${client.user.tag}!`);
+    if (!client.user) {
+        return;
+    }
+    logger.info(`Logged in as ${client.user.tag}!`);
 
     //deploying commands
     const clientGuilds = client.guilds.cache.map((guild) => guild.id);
@@ -75,10 +78,10 @@ client.on('ready', () => {
     fetch('https://ddragon.leagueoflegends.com/api/versions.json')
         .then((res: { json: () => Promise<string[]> }) => res.json())
         .then((json: string[]) => {
-            console.log('Checking for update');
+            logger.info('Checking for update');
             champion_data_helper.updateChampionData(json[0]);
         })
-        .catch(console.error);
+        .catch(logger.error);
 
     client.user.setActivity('Use "/info" for rules and available commands', { type: ActivityType.Custom });
 });
